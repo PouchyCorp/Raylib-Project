@@ -7,10 +7,13 @@
 		"**/.DS_Store": true,
 		"**/*.o": true,
 		"**/*.exe": true,
+		"**/*.gitattributes": true,
+		"**/*.gitignore": true
 	},
 	"files.autoSave": "afterDelay",
 	"files.associations": {
 		"*.tcc": "cpp",
-		"ostream": "cpp"
+		"ostream": "cpp",
+		"*.m": "cpp"
 	}
 }
