@@ -12,8 +12,8 @@ void copyArray(int* source, int* destination, int totalSize) {
 
 array<int,2> coordToGrid(int coordX, int coordY, int sizeX, int sizeY){
     array<int,2> gridCoord;
-    gridCoord[1] = (coordX - (coordX % sizeY))/sizeY;
-    gridCoord[0] = (coordY - (coordY % sizeX))/sizeX;
+    gridCoord[1] = (coordX - (coordX % (GetScreenHeight()/sizeY)))/(GetScreenHeight()/sizeY);
+    gridCoord[0] = (coordY - (coordY % (GetScreenWidth()/sizeX)))/(GetScreenWidth()/sizeX);
     return gridCoord;
 }
 
@@ -25,6 +25,8 @@ int main()
 
     const int screenWidth = 800;
     const int screenHeight = 800;
+
+    srand(time(NULL));
 
     const int gridSizeX = 100;
     const int gridSizeY = 100;
@@ -41,7 +43,9 @@ int main()
     grid[20][20] = 1;
 
     InitWindow(screenWidth, screenHeight, "My first RAYLIB program!");
-    SetTargetFPS(20000);
+    SetTargetFPS(1000);
+    bool clicking = false;
+
 
     for (int i = 0; i<=50; i++){
         cout << endl;
@@ -55,7 +59,14 @@ int main()
 
         Vector2 mousePos = GetMousePosition();
 
-        if (0 < mousePos.x and mousePos.x < screenWidth and 0 < mousePos.y and mousePos.y < screenHeight and IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+            clicking = true; 
+        }else if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)){
+            clicking = false;
+        }
+
+
+        if (0 < mousePos.x and mousePos.x < screenWidth and 0 < mousePos.y and mousePos.y < screenHeight and clicking){
             array<int,2> gridPos = coordToGrid(mousePos.x,mousePos.y,gridSizeX,gridSizeY);
             fgrid[gridPos[0]][gridPos[1]] = 1;
         }
@@ -63,9 +74,32 @@ int main()
         //gravity
         for (int x = 0; x<gridSizeX; x++){
             for (int y = 0; y<gridSizeY; y++){
-                if (grid[y][x] == 1 and y+1 < gridSizeY and grid[y+1][x] == 0){
-                    fgrid[y][x] = 0;
-                    fgrid[y+1][x] = 1;
+                if (grid[y][x] == 1 and y+1 < gridSizeY){
+                    if (grid[y+1][x] == 0){
+                        fgrid[y][x] = 0;
+                        fgrid[y+1][x] = 1;
+                    }
+                    else if ((grid[y+1][x+1] == 0 or grid[y+1][x-1] == 0) && (x+1 < gridSizeX and x-1 >= 0)){
+
+                        fgrid[y][x] = 0;
+
+                        if (grid[y+1][x+1] == 0 and grid[y+1][x-1] == 0){
+                            if (rand() % 2 == 1){
+                                fgrid[y+1][x+1] = 1;
+                            }
+                            else{
+                                fgrid[y+1][x-1] = 1;
+                            };
+                        }
+                        else{
+                            if (grid[y+1][x+1] != 0){
+                                fgrid[y+1][x-1] = 1;
+                            }
+                            else{
+                                fgrid[y+1][x+1] = 1;
+                            }
+                        }
+                    }
                 }
             }
         }
