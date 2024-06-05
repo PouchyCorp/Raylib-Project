@@ -1,6 +1,7 @@
 #include <raylib.h>
 #include <iostream>
 #include <array>
+#include <cstdlib> // For malloc and free
 
 using namespace std;
 
@@ -31,21 +32,23 @@ int main()
 
     srand(time(NULL));
 
-    const int gridSizeX = 100;
-    const int gridSizeY = 100;
+    const int gridSizeX = 500;
+    const int gridSizeY = 500;
     const int gridCellSizeX = screenWidth / gridSizeX;
     const int gridCellSizeY = screenHeight / gridSizeY;
 
-    int grid[gridSizeY][gridSizeY];
+    int* grid = new int[gridSizeX * gridSizeY]();
+    int* fgrid = new int[gridSizeX * gridSizeY]();
+    
     for (int x = 0; x < gridSizeX; x++)
     {
         for (int y = 0; y < gridSizeY; y++)
         {
-            grid[y][x] = 0;
-        };
-    };
+            grid[y * gridSizeX + x] = 0;
+        }
+    }
 
-    grid[20][20] = 1;
+    grid[20 * gridSizeX + 20] = 1;
 
     InitWindow(screenWidth, screenHeight, "My first RAYLIB program!");
     SetTargetFPS(1000);
@@ -58,8 +61,7 @@ int main()
 
     while (!WindowShouldClose())
     {
-        int fgrid[gridSizeY][gridSizeY];
-        copyArray(*grid, *fgrid, gridSizeY * gridSizeX);
+        copyArray(grid, fgrid, gridSizeY * gridSizeX);
 
         Vector2 mousePos = GetMousePosition();
 
@@ -72,10 +74,10 @@ int main()
             clicking = false;
         }
 
-        if (0 < mousePos.x and mousePos.x < screenWidth and 0 < mousePos.y and mousePos.y < screenHeight and clicking)
+        if (0 < mousePos.x && mousePos.x < screenWidth && 0 < mousePos.y && mousePos.y < screenHeight && clicking)
         {
             array<int, 2> gridPos = coordToGrid(mousePos.x, mousePos.y, gridSizeX, gridSizeY);
-            fgrid[gridPos[0]][gridPos[1]] = 1;
+            fgrid[gridPos[0] * gridSizeX + gridPos[1]] = 1;
         }
 
         // gravity
@@ -83,38 +85,37 @@ int main()
         {
             for (int y = 0; y < gridSizeY; y++)
             {
-                if (grid[y][x] == 1 and y + 1 < gridSizeY)
+                if (grid[y * gridSizeX + x] == 1 && y + 1 < gridSizeY)
                 {
-                    if (grid[y + 1][x] == 0)
+                    if (grid[(y + 1) * gridSizeX + x] == 0)
                     {
-                        fgrid[y][x] = 0;
-                        fgrid[y + 1][x] = 1;
+                        fgrid[y * gridSizeX + x] = 0;
+                        fgrid[(y + 1) * gridSizeX + x] = 1;
                     }
-                    else if ((grid[y + 1][x + 1] == 0 or grid[y + 1][x - 1] == 0) && (x + 1 < gridSizeX and x - 1 >= 0))
+                    else if ((grid[(y + 1) * gridSizeX + x + 1] == 0 || grid[(y + 1) * gridSizeX + x - 1] == 0) && (x + 1 < gridSizeX && x - 1 >= 0))
                     {
+                        fgrid[y * gridSizeX + x] = 0;
 
-                        fgrid[y][x] = 0;
-
-                        if (grid[y + 1][x + 1] == 0 and grid[y + 1][x - 1] == 0)
+                        if (grid[(y + 1) * gridSizeX + x + 1] == 0 && grid[(y + 1) * gridSizeX + x - 1] == 0)
                         {
                             if (rand() % 2 == 1)
                             {
-                                fgrid[y + 1][x + 1] = 1;
+                                fgrid[(y + 1) * gridSizeX + x + 1] = 1;
                             }
                             else
                             {
-                                fgrid[y + 1][x - 1] = 1;
-                            };
+                                fgrid[(y + 1) * gridSizeX + x - 1] = 1;
+                            }
                         }
                         else
                         {
-                            if (grid[y + 1][x + 1] != 0)
+                            if (grid[(y + 1) * gridSizeX + x + 1] != 0)
                             {
-                                fgrid[y + 1][x - 1] = 1;
+                                fgrid[(y + 1) * gridSizeX + x - 1] = 1;
                             }
                             else
                             {
-                                fgrid[y + 1][x + 1] = 1;
+                                fgrid[(y + 1) * gridSizeX + x + 1] = 1;
                             }
                         }
                     }
@@ -126,23 +127,23 @@ int main()
         ClearBackground(black);
 
         // grid ui
-        for (int x = 0; x <= screenWidth; x = x + gridCellSizeX)
+        for (int x = 0; x <= screenWidth; x += gridCellSizeX)
         {
             DrawLine(x, 0, x, screenHeight, gray);
         }
-        for (int y = 0; y <= screenHeight; y = y + gridCellSizeY)
+        for (int y = 0; y <= screenHeight; y += gridCellSizeY)
         {
             DrawLine(0, y, screenWidth, y, gray);
         }
 
-        copyArray(*fgrid, *grid, gridSizeX * gridSizeY);
+        copyArray(fgrid, grid, gridSizeX * gridSizeY);
 
         // draw cells
         for (int x = 0; x < gridSizeX; x++)
         {
             for (int y = 0; y < gridSizeY; y++)
             {
-                if (grid[y][x] == 1)
+                if (grid[y * gridSizeX + x] == 1)
                 {
                     DrawRectangle(x * gridCellSizeX, y * gridCellSizeY, gridCellSizeX, gridCellSizeY, white);
                 }
@@ -151,6 +152,8 @@ int main()
         EndDrawing();
     }
 
+    delete[] grid;
+    delete[] fgrid;
     CloseWindow();
     return 0;
 }
