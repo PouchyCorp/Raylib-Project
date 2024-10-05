@@ -1,6 +1,7 @@
 #include <raylib.h>
 #include <iostream>
 #include <array>
+#include <grid.h>
 #include <algorithm> // For std::copy
 
 using namespace std;
@@ -26,6 +27,9 @@ int main()
 
     const int screenWidth = 900;
     const int screenHeight = 900;
+
+    Grid myGrid(3,3,0);
+    
 
     srand(time(NULL));
 
